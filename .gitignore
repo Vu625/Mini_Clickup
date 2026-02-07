@@ -1,0 +1,65 @@
+# =================================================================
+# SYSTEM FILES
+# =================================================================
+.DS_Store
+Thumbs.db
+*.log
+
+# =================================================================
+# BACKEND (FastAPI / Python)
+# =================================================================
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.venv/
+backend/venv/
+backend/env/
+backend/build/
+backend/dist/
+backend/*.egg-info/
+
+# Alembic migrations (giữ lại versions, nhưng bỏ qua cache)
+backend/migrations/versions/__pycache__/
+
+# =================================================================
+# FRONTEND (Next.js / Node)
+# =================================================================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.vercel/
+frontend/*.tsbuildinfo
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# =================================================================
+# ENVIRONMENT & SECRETS (QUAN TRỌNG: Không để lộ Gemini API Key)
+# =================================================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# =================================================================
+# DATABASES & STORAGE (Dữ liệu thực tế của DB)
+# =================================================================
+# Bỏ qua dữ liệu của PostgreSQL và ChromaDB nếu bạn map volume ra folder ngoài
+postgres_data/
+chroma_data/
+*.db
+*.sqlite3
+
+# =================================================================
+# IDE / EDITORS
+# =================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
