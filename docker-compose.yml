@@ -1,0 +1,60 @@
+services:
+  # 1. Database quan hệ (Lưu User, Task, Project)
+  db:
+    image: postgres:15-alpine
+    container_name: mc_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
+      POSTGRES_DB: ${POSTGRES_DB:-mini_clickup}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Vector Database (Dành cho AI - Semantic Search & RAG)
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: mc_chroma
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+
+  # 3. Backend FastAPI
+  backend:
+    build: ./backend
+    container_name: mc_backend
+    restart: always
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8001:8000" # Map port 8001 ra ngoài để tránh trùng với ChromaDB
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@db:5432/${POSTGRES_DB:-mini_clickup}
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - db
+      - chromadb
+
+  # 4. Frontend Next.js
+  frontend:
+    build: ./frontend
+    container_name: mc_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  chroma_data:

@@ -63,3 +63,33 @@ chroma_data/
 .idea/
 *.swp
 *.swo
+
+# Python (Backend)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv
+backend/app/__pycache__/
+backend/app/*/__pycache__/
+
+# Node.js (Frontend)
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+*.log
+
+# Docker
+.docker/
+
+# IDE (VS Code, PyCharm)
+.vscode/
+.idea/
+
+# Database (Nếu bạn dùng SQLite file cục bộ)
+*.sqlite3
+*.db
