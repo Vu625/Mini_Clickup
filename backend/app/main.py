@@ -3,6 +3,7 @@ from app.api.v1.api import api_router
 from app.models.user import User
 from app.db.session import engine
 from sqlmodel import SQLModel
+from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.security import HTTPBearer
 # from fastapi import Depends
 
@@ -13,6 +14,17 @@ app = FastAPI(title="Planner API",openapi_tags=[
         },
     ])
 
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Cho phép tất cả các phương thức (POST, GET, OPTIONS,...)
+    allow_headers=["*"], # Cho phép tất cả các headers
+)
 
 # security = HTTPBearer()
 
