@@ -3,7 +3,11 @@ import { DefaultSession } from "next-auth"
 
 declare module "next-auth" {
   interface Session {
-    accessToken?: string & DefaultSession["user"]
+    // Tách riêng accessToken và user ra nhé
+    accessToken?: string; 
+    user: {
+      id?: string;
+    } & DefaultSession["user"];
   }
 
   interface User {

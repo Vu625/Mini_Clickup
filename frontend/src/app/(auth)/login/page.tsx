@@ -34,7 +34,7 @@ const LoginPage = () => {
     if (result?.error) {
       setError("Email hoặc mật khẩu không chính xác.");
     } else {
-      router.push("/"); // Chuyển hướng sau khi thành công
+      router.push("/workspace"); // Chuyển hướng sau khi thành công
       router.refresh(); // Làm mới trạng thái ứng dụng
     }
   };
