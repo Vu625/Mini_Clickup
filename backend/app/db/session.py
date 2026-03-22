@@ -1,12 +1,3 @@
-# from sqlmodel import create_engine, Session
-# from app.core.config import settings
-
-# engine = create_engine(settings.DATABASE_URL)
-
-# def get_session():
-#     with Session(engine) as session:
-#         yield session
-
 from typing import AsyncGenerator
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase

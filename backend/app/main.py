@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.api.v1.api import api_router
 from app.models.user import User
+from app.models.workspace import Workspace, WorkspaceMember
 from app.db.session import engine
 from sqlmodel import SQLModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +12,18 @@ app = FastAPI(title="Planner API",openapi_tags=[
         {
             "name": "Authentication",
             "description": "Các API liên quan đến xác thực và đăng ký người dùng",
+        },
+        {
+            "name": "Workspace",
+            "description": "Các API Lấy Thêm Xóa Sửa Workspace",
+        },
+        {
+            "name": "Project",
+            "description": "Các API Lấy Thêm Xóa Sửa Project",
+        },
+                {
+            "name": "Task",
+            "description": "Các API Lấy Thêm Xóa Sửa Task",
         },
     ])
 

@@ -1,22 +1,4 @@
-# from pydantic import BaseModel, EmailStr
-# from uuid import UUID
-
-
-# class UserCreate(BaseModel):
-#     email: EmailStr
-#     password: str
-#     full_name: str
-
-# class UserResponse(BaseModel):
-#     id: UUID
-#     email: EmailStr
-#     full_name: str
-
-#     class Config:
-#         from_attributes = True
-
 from uuid import UUID
-from sqlmodel import SQLModel, Field
 from fastapi_users import schemas
 from pydantic import EmailStr
 
