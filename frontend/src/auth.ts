@@ -27,11 +27,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (!res.ok) return null;
 
           const data = await res.json();
+          const token = data.access_token;
           
+          const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/me`, {
+          headers: { "Authorization": `Bearer ${token}` },
+          });
+          if (!userRes.ok) return null;
+          const userData = await userRes.json();
           // Trả về object chứa token. Auth.js yêu cầu có trường 'id'
           return {
-            id: "jwt-user", // ID tạm, ta sẽ dùng accessToken để định danh
+            id: userData.id, // ID tạm, ta sẽ dùng accessToken để định danh
             accessToken: data.access_token,
+            email: userData.email,
+            name: userData.full_name,
           };
         } catch (error) {
           console.error("Lỗi kết nối Backend:", error);
@@ -41,17 +49,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isDashboard = nextUrl.pathname.startsWith("/workspace");
+      
+      if (isDashboard) {
+        if (isLoggedIn) return true;
+        return false; // Trả về false sẽ tự động redirect về trang login đã định nghĩa
+      }
+      return true;
+    },
     // Lưu accessToken từ authorize() vào token của Auth.js
     async jwt({ token, user }) {
       if (user) {
         token.accessToken = user.accessToken;
+        token.id = user.id; // Lưu ID vào token
       }
       return token;
     },
     // Đẩy accessToken ra session để Client (React Component) có thể lấy được
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
-      return session;
+      // session.accessToken = token.accessToken;
+      // return session;
+      if (session.user) {
+      session.accessToken = token.accessToken as string;
+      session.user.id = token.id as string; // Đẩy ID ra session.user
+    }
+    return session;
     }
   },
   pages: {

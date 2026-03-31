@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Loader2, X, Calendar, ClipboardList } from "lucide-react";
 
 // Tái sử dụng Interface chuẩn của bạn
 export interface Task {
@@ -21,7 +22,7 @@ export interface TaskUpdate {
   description?: string;
   priority?: string;
   status?: string;
-  due_date?: string ;
+  due_date?: string;
 }
 
 interface TaskModalProps {
@@ -32,13 +33,12 @@ interface TaskModalProps {
 }
 
 export const TaskModal = ({ task, onClose, onUpdate, isUpdating }: TaskModalProps) => {
-  // Đưa dữ liệu task vào state nội bộ của Modal để người dùng thoải mái chỉnh sửa trước khi bấm Save
   const [formData, setFormData] = useState<TaskUpdate>({
     title: task.title,
     description: task.description || "",
     priority: task.priority,
     status: task.status,
-    due_date: task.due_date ? task.due_date.split("T")[0] : "", // Format ngày chuẩn cho thẻ input type="date"
+    due_date: task.due_date ? task.due_date.split("T")[0] : "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -48,51 +48,68 @@ export const TaskModal = ({ task, onClose, onUpdate, isUpdating }: TaskModalProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate(task.id, formData);
+    const dataToSend = { ...formData };
+    if (!dataToSend.due_date || dataToSend.due_date.trim() === "") {
+      delete dataToSend.due_date; 
+    }
+    onUpdate(task.id, dataToSend);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-emerald-100/50">
         
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Chi tiết công việc</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-red-500 font-bold text-xl">
-            &times;
+        {/* Header - Nhuộm xanh nhẹ */}
+        <div className="flex justify-between items-center p-5 border-b bg-emerald-50/30">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+              <ClipboardList size={20} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Chi tiết công việc</h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-1 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+          >
+            <X size={24} />
           </button>
         </div>
 
         {/* Body */}
-        <form id="task-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 flex flex-col gap-4">
+        <form id="task-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tên công việc</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tên công việc</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full border p-2 rounded-md focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all dark:bg-slate-800 dark:border-slate-700"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả chi tiết</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Mô tả chi tiết</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows={4}
-              className="w-full border p-2 rounded-md focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+              className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none transition-all dark:bg-slate-800 dark:border-slate-700"
               placeholder="Thêm mô tả chi tiết để AI hiểu rõ hơn ngữ cảnh..."
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="w-full border p-2 rounded-md bg-white">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Trạng thái</label>
+              <select 
+                name="status" 
+                value={formData.status} 
+                onChange={handleChange} 
+                className="w-full border border-slate-200 p-2.5 rounded-lg bg-white dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+              >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Done">Done</option>
@@ -100,8 +117,13 @@ export const TaskModal = ({ task, onClose, onUpdate, isUpdating }: TaskModalProp
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Độ ưu tiên</label>
-              <select name="priority" value={formData.priority} onChange={handleChange} className="w-full border p-2 rounded-md bg-white">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Độ ưu tiên</label>
+              <select 
+                name="priority" 
+                value={formData.priority} 
+                onChange={handleChange} 
+                className="w-full border border-slate-200 p-2.5 rounded-lg bg-white dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+              >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
                 <option value="High">High</option>
@@ -110,29 +132,36 @@ export const TaskModal = ({ task, onClose, onUpdate, isUpdating }: TaskModalProp
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hạn chót (Due Date)</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <Calendar size={14} className="text-emerald-600" /> Hạn chót
+              </label>
               <input
                 type="date"
                 name="due_date"
                 value={formData.due_date}
                 onChange={handleChange}
-                className="w-full border p-2 rounded-md"
+                className="w-full border border-slate-200 p-2 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
               />
             </div>
           </div>
         </form>
 
-        {/* Footer */}
-        <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md hover:bg-gray-100 transition">
+        {/* Footer - Nút bấm Emerald */}
+        <div className="p-4 border-t bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="px-5 py-2 text-slate-600 font-medium hover:bg-slate-200 rounded-lg transition-colors"
+          >
             Hủy
           </button>
           <button 
             type="submit" 
             form="task-form" 
             disabled={isUpdating}
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition disabled:opacity-50"
+            className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-md shadow-emerald-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
+            {isUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
             {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
         </div>

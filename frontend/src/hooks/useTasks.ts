@@ -2,24 +2,28 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "@/services/task.service";
 import { useSession } from "next-auth/react";
 import { Task,TaskUpdate } from "@/types/task";
-export const useTasks = (projectId: string) => {
+
+const useAuthToken = () => {
   const { data: session } = useSession();
-  const token = session?.accessToken;
+  return session?.accessToken;
+};
+
+export const useTasks = (projectId: string) => {
+  const token = useAuthToken();
 
   return useQuery({
     queryKey: ["tasks", projectId],
-    queryFn: () => taskService.getTasksByProject(projectId, token!),
+    queryFn: () => taskService.getTasksByProject(token!,projectId),
     enabled: !!token && !!projectId,
   });
 };
 
 export const useCreateTask = (projectId: string) => {
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
-  const token = session?.accessToken;
+  const token = useAuthToken();
 
   return useMutation({
-    mutationFn: (data: { title: string; description?: string; priority?: string; status?: string }) =>
+    mutationFn: (data: { title: string; description?: string; priority?: string; status?: string,assignee_id?: string }) =>
       taskService.createTask(token!, { ...data, project_id: projectId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
@@ -27,24 +31,9 @@ export const useCreateTask = (projectId: string) => {
   });
 };
 
-// Hook để update task (đổi status khi kéo thả)
-// export const useUpdateTask = (projectId: string) => {
-//   const queryClient = useQueryClient();
-//   const { data: session } = useSession();
-//   const token = session?.accessToken;
-
-//   return useMutation({
-//     mutationFn: ({ taskId, data }: { taskId: string; data: TaskUpdate }) =>
-//       taskService.updateTask(token!, taskId, data),
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-//     },
-//   });
-// };
 export const useUpdateTask = (projectId: string) => {
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
-  const token = session?.accessToken;
+  const token = useAuthToken();
 
   return useMutation({
     mutationFn: ({ taskId, data }: { taskId: string; data: TaskUpdate }) =>
@@ -92,5 +81,56 @@ export const useUpdateTask = (projectId: string) => {
       // Gọi một cú fetch nhẹ ở background để đảm bảo UI đồng bộ 100% với sự thật từ Database
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
+  });
+};
+
+export const useDeleteTask = (projectId: string) => {
+  const queryClient = useQueryClient();
+  const token = useAuthToken();
+
+  return useMutation({
+    mutationFn: (taskId: string) => taskService.deleteTask(token!, taskId),
+    onSuccess: () => {
+      // Làm mới danh sách task của project này
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+    },
+  });
+};
+
+export const useGenerateTasksAI = (projectId: string) => {
+  const queryClient = useQueryClient();
+  const token = useAuthToken();
+
+  return useMutation({
+    mutationFn: (prompt: string) => 
+      taskService.generateTasksAI(token!, { project_id: projectId, prompt }),
+    onSuccess: () => {
+      // Sau khi AI tạo xong một loạt task, làm mới danh sách để hiển thị chúng
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+    },
+  });
+};
+
+export const useSemanticSearch = (projectId: string, query: string) => {
+  const token = useAuthToken();
+
+  return useQuery({
+    // QueryKey thay đổi theo 'query' để React Query tự động fetch lại khi user gõ
+    queryKey: ["tasks-search", projectId, query],
+    queryFn: () => taskService.semanticSearch(token!, query, projectId),
+    // Chỉ chạy khi có token, có projectId và người dùng đã gõ ít nhất 2 ký tự
+    enabled: !!token && !!projectId && query.length > 1,
+    // Không cache quá lâu vì kết quả tìm kiếm cần linh hoạt
+    staleTime: 0, 
+  });
+};
+
+export const useAIChat = (projectId: string) => {
+  const token = useAuthToken();
+
+  return useMutation({
+    mutationFn: (userQuery: string) => 
+      taskService.chatWithAI(token!, { query: userQuery, project_id: projectId }),
+    // Không cần invalidate task vì chat không làm thay đổi dữ liệu task
   });
 };
