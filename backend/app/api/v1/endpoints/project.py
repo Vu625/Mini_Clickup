@@ -12,6 +12,7 @@ from app.models.workspace import WorkspaceMember
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 from app.crud import project as crud_project
 
+
 router = APIRouter()
 @router.get("/workspace/{workspace_id}", response_model=List[ProjectRead])
 async def list_projects(
@@ -48,10 +49,6 @@ async def create_new_project(
 
     return await crud_project.create_project(db, obj_in=obj_in, user_id=current_user.id)
 
-
-# Phần PUT (Update) và DELETE bạn có thể bổ sung tương tự như Workspace, 
-# nhớ kết hợp kiểm tra quyền trong bảng ProjectMember (role phải là Owner/Editor) trước khi cho phép sửa/xóa.
-
 @router.put("/{project_id}", response_model=ProjectRead)
 async def update_existing_project(
     project_id: UUID,
@@ -81,7 +78,6 @@ async def update_existing_project(
         raise HTTPException(status_code=403, detail="Not enough permissions to edit this project")
 
     return await crud_project.update_project(db, db_obj=db_obj, obj_in=obj_in)
-
 
 @router.delete("/{project_id}")
 async def remove_project(

@@ -12,5 +12,6 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore" # Bỏ qua các biến thừa trong .env nếu có
     )
+    GEMINI_API_KEY: str
 
 settings = Settings()

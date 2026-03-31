@@ -1,6 +1,10 @@
 from uuid import UUID, uuid4
-from typing import Optional, List
+from typing import Optional, List , TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
+# from app.models.project import Project
+if TYPE_CHECKING:
+    from app.models.project import Project
+
 
 # Bảng trung gian Workspace_Members (Nhiều - Nhiều)
 class WorkspaceMember(SQLModel, table=True):
@@ -25,7 +29,22 @@ class Workspace(SQLModel, table=True):
             "cascade": "all, delete-orphan", # Khi xóa Workspace, xóa luôn các Member liên quan
         },
     )
+    projects: List["Project"] = Relationship(
+        back_populates="workspace",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan", # Xóa Workspace -> Xóa sạch Project
+        },
+    )
 
     # Relationships (Để dễ dàng truy xuất dữ liệu liên quan)
     # Một workspace có nhiều dự án
     # projects: List["Project"] = Relationship(back_populates="workspace")
+
+class WorkspaceInvitation(SQLModel, table=True):
+    __tablename__ = "workspace_invitations"
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    workspace_id: UUID = Field(foreign_key="workspaces.id")
+    inviter_id: UUID = Field(foreign_key="users.id") # Người mời
+    invitee_email: str = Field(index=True) # Email người được mời
+    role: str = Field(default="Member") # Member hoặc Guest
+    status: str = Field(default="pending") # pending, accepted, declined

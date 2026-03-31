@@ -8,6 +8,7 @@ class ProjectCreate(BaseModel):
     description: Optional[str] = None
     is_public: bool = True
 
+
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None

@@ -3,6 +3,8 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 from app.models.task import TaskPriority
+from uuid import UUID
+
 
 class TaskCreate(BaseModel):
     project_id: UUID
@@ -35,3 +37,7 @@ class TaskRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TaskAIGenerateRequest(BaseModel):
+    project_id: UUID
+    prompt: str = "Lên kế hoạch tổ chức workshop AI trong 1 tuần"

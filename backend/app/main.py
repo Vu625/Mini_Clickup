@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from app.api.v1.api import api_router
 from app.models.user import User
-from app.models.workspace import Workspace, WorkspaceMember
+from app.models.notification import Notification
+from app.models.workspace import Workspace, WorkspaceMember , WorkspaceInvitation
+from app.models.project import Project
+from app.models.task import Task
 from app.db.session import engine
 from sqlmodel import SQLModel
 from fastapi.middleware.cors import CORSMiddleware

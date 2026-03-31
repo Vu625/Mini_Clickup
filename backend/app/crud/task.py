@@ -30,3 +30,8 @@ async def update_task(db: AsyncSession, db_obj: Task, obj_in: TaskUpdate) -> Tas
     await db.commit()
     await db.refresh(db_obj)
     return db_obj
+
+async def delete_task(db: AsyncSession, db_obj: Task) -> bool:
+    await db.delete(db_obj)
+    await db.commit()
+    return True

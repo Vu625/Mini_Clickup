@@ -7,12 +7,14 @@ from app.db.session import get_async_session
 from app.core.fastapi_users_config import current_active_user
 from app.models.user import User
 from app.models.workspace import Workspace
-from app.schemas.workspace import WorkspaceCreate, WorkspaceRead, WorkspaceUpdate
+from app.schemas.workspace import WorkspaceCreate, WorkspaceRead, WorkspaceUpdate ,InvitationCreate, InvitationRead , InvitationWithWorkspaceRead
 from app.crud import workspace as crud_workspace
+from app.services import workspace as services_workspace
 
 router = APIRouter()
 
-@router.post("/", response_model=WorkspaceRead)
+
+@router.post("/", response_model=WorkspaceRead,status_code=201)
 async def create_new_workspace(
     *,
     db: AsyncSession = Depends(get_async_session),
@@ -37,17 +39,7 @@ async def update_existing_workspace(
     db: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(current_active_user)
 ):
-    """Cập nhật thông tin workspace (Chỉ Owner mới có quyền)."""
-    # Bước này có thể viết thêm logic kiểm tra quyền Owner ở đây hoặc trong CRUD
-    # Tạm thời giả định user hợp lệ để test CRUD
-    statement = select(Workspace).where(Workspace.id == workspace_id)
-    result = await db.execute(statement)
-    db_obj = result.scalar_one_or_none()
-    
-    if not db_obj or db_obj.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-        
-    return await crud_workspace.update_workspace(db, db_obj=db_obj, obj_in=obj_in)
+    return await services_workspace.update_workspace(workspace_id,obj_in,db,current_user)
 
 @router.delete("/{workspace_id}")
 async def remove_workspace(
@@ -57,7 +49,53 @@ async def remove_workspace(
 ):
     """Xóa workspace."""
     # Kiểm tra quyền trước khi xóa
-    success = await crud_workspace.delete_workspace(db, id=workspace_id)
+    success = await services_workspace.delete_workspace(db=db, workspace_id=workspace_id, current_user=current_user)
     if not success:
         raise HTTPException(status_code=404, detail="Workspace not found")
     return {"message": "Workspace deleted successfully"}
+
+@router.post("/{workspace_id}/invite", response_model=InvitationRead)
+async def invite_member(
+    workspace_id: UUID,
+    obj_in: InvitationCreate,
+    db: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_active_user)
+):
+    # Logic kiểm tra quyền: Chỉ Owner mới được mời
+    # (Bạn có thể fetch workspace ra kiểm tra owner_id == current_user.id)
+    return await crud_workspace.invite_user_to_workspace(
+        db, workspace_id, current_user.id, obj_in
+    )
+
+@router.get("/invitations/me", response_model=List[InvitationWithWorkspaceRead])
+async def list_my_invitations(
+    db: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_active_user) # Dependency bạn đã có
+):
+    """
+    Lấy danh sách lời mời dành cho User hiện tại dựa trên Email.
+    """
+    invitations = await crud_workspace.get_my_invitations(
+        db, 
+        user_email=current_user.email
+    )
+    return invitations
+
+@router.post("/invitations/{invitation_id}/accept")
+async def accept_workspace_invitation(
+    invitation_id: UUID,
+    db: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_active_user)
+):
+    """Chấp nhận lời mời và chính thức gia nhập Workspace."""
+    return await crud_workspace.accept_invitation(db, invitation_id, current_user)
+
+
+@router.post("/invitations/{invitation_id}/decline")
+async def decline_workspace_invitation(
+    invitation_id: UUID,
+    db: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(current_active_user)
+):
+    """Từ chối lời mời (Xóa bản ghi invitation)."""
+    return await crud_workspace.decline_invitation(db, invitation_id, current_user)

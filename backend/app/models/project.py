@@ -1,7 +1,10 @@
 from uuid import UUID, uuid4
-from typing import Optional, List
+from typing import Optional, List , TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
-
+# from app.models.task import Task
+if TYPE_CHECKING:
+    from app.models.workspace import Workspace
+    from app.models.task import Task
 # Bảng trung gian Project_Members
 class ProjectMember(SQLModel, table=True):
     __tablename__ = "project_members"
@@ -21,10 +24,16 @@ class Project(SQLModel, table=True):
     name: str
     description: Optional[str] = Field(default=None)
     is_public: bool = Field(default=True)
-
+    workspace: Optional["Workspace"] = Relationship(back_populates="projects")
     members: List["ProjectMember"] = Relationship(
         back_populates="project",
         sa_relationship_kwargs={
             "cascade": "all, delete-orphan",
+        },
+    )
+    tasks: List["Task"] = Relationship(
+        back_populates="project", # Bạn cần thêm back_populates vào model Task nữa (xem bên dưới)
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan", # Xóa Project -> Xóa sạch Task
         },
     )

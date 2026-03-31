@@ -18,3 +18,25 @@ class WorkspaceRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class InvitationCreate(BaseModel):
+    invitee_email: str
+    role: str = "Member"
+
+class InvitationRead(BaseModel):
+    id: UUID
+    workspace_id: UUID
+    invitee_email: str
+    role: str
+    status: str
+
+class InvitationWithWorkspaceRead(BaseModel):
+    id: UUID
+    workspace_id: UUID
+    workspace_name: str  
+    inviter_id: UUID
+    role: str
+    status: str
+
+    class Config:
+        from_attributes = True

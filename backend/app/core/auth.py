@@ -1,7 +1,6 @@
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from app.core.config import settings
-# 1. Transport: Trả về token qua header Bearer
-# bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+
 bearer_transport = BearerTransport(tokenUrl="/api/v1/auth/jwt/login")
 SECRET = settings.SECRET_KEY
 

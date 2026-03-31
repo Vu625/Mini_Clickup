@@ -1,9 +1,12 @@
 from uuid import UUID, uuid4
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from enum import Enum
-from sqlmodel import SQLModel, Field, Column, String
+from sqlmodel import SQLModel, Field, Column, String ,Relationship
 from sqlalchemy import Enum as SAEnum
+# from app.models.project import Project
+if TYPE_CHECKING:
+    from app.models.project import Project
 
 class TaskPriority(str, Enum):
     LOW = "Low"
@@ -32,3 +35,4 @@ class Task(SQLModel, table=True):
     
     # Cờ đánh dấu đã được đưa vào Vector DB chưa
     embedding_status: bool = Field(default=False)
+    project: Optional["Project"] = Relationship(back_populates="tasks")
